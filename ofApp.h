@@ -25,7 +25,7 @@ class ofApp : public ofBaseApp{
 		int d_flag;
 		int s_flag;
 		int q_flag;
-		int lineNum;
+		int line_num;
 		vector<RotatableLine> lines;
 		int cur_line;
 

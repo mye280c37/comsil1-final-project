@@ -19,6 +19,9 @@ class RotatableLine {
 	private:
 		int w = 1;
 		int r = 4;
+
+		void setDiameter();
+		
 	public:
 		Line diameter;
 		int gradient;
@@ -28,6 +31,8 @@ class RotatableLine {
 		void decreaseGrad();
 		void setW(int new_w);
 		void setR(int new_r);
+
+	
 };
 
 class Water {
