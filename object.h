@@ -14,14 +14,18 @@ typedef struct _Line {
 	Dot end;
 }Line;
 
+typedef struct _WaterPail {
+	Line left;
+	Line bottom;
+	Line right;
+} WaterPail;
+
 class RotatableLine {
 
 	private:
 		int w = 1;
 		int r = 4;
 
-		void setDiameter();
-		
 	public:
 		Line diameter;
 		int gradient;
@@ -29,9 +33,10 @@ class RotatableLine {
 
 		void increaseGrad();
 		void decreaseGrad();
+		void setDiameter();
 		void setW(int new_w);
 		void setR(int new_r);
-
+		int getR();
 	
 };
 

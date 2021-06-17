@@ -46,6 +46,10 @@ void RotatableLine::setR(int new_r) {
 	r = new_r;
 }
 
+int RotatableLine::getR() {
+	return r;
+}
+
 // Water
 void Water::calculatePath(vector<RotatableLine> lines, int line_num) {
 	int path_length = pre_path.size();

@@ -2,6 +2,7 @@
 
 #include "ofMain.h"
 #include "object.h"
+#include <cstdlib>
 
 class ofApp : public ofBaseApp{
 
@@ -22,12 +23,16 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 		
+		int l_flag;
 		int d_flag;
 		int s_flag;
 		int q_flag;
 		int line_num;
 		vector<RotatableLine> lines;
+		Dot water_point;
 		int cur_line;
+		WaterPail water_pail;
 
-		void initializeObject();
+		void quickSort(int left, int right);
+		int initializeObject();
 };
