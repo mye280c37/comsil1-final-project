@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#define PI 3.1415926
 
 using namespace std;
 
@@ -23,20 +24,17 @@ typedef struct _WaterPail {
 class RotatableLine {
 
 	private:
-		int w = 1;
-		int r = 4;
+		int w = 10;
 
 	public:
 		Line diameter;
 		int gradient;
 		Dot center;
-
-		void increaseGrad();
-		void decreaseGrad();
+		int r;
+		int increaseGrad();
+		int decreaseGrad();
 		void setDiameter();
 		void setW(int new_w);
-		void setR(int new_r);
-		int getR();
 	
 };
 
@@ -46,14 +44,10 @@ class Water {
 		vector<Line> pre_path;
 		Dot cur_loc;
 		int on_line;
+		int past_dest;
 		int dest;
 		Dot dest_loc;
 
 		void calculatePath(vector<RotatableLine> lines, int line_num);
-};
-
-typedef struct _WaterPail {
-	Line left;
-	Line bottom;
-	Line right;
+		int checkCurLoc(vector<RotatableLine> lines);
 };

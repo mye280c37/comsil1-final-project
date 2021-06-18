@@ -27,12 +27,14 @@ class ofApp : public ofBaseApp{
 		int d_flag;
 		int s_flag;
 		int q_flag;
+		int x_range;
+		int line_r; 
 		int line_num;
 		vector<RotatableLine> lines;
 		Dot water_point;
 		int cur_line;
+		Water water;
 		WaterPail water_pail;
 
-		void quickSort(int left, int right);
 		int initializeObject();
 };

@@ -2,6 +2,8 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+	cout << "setup method is called" << endl;
+
 	ofSetFrameRate(15); // Limit the speed of our program to 15 frames per second
 
 	// We still want to draw on a black background, so we need to draw
@@ -10,7 +12,11 @@ void ofApp::setup(){
 	ofSetLineWidth(4);
 
 	line_num = 6;
-	l_flag = 0;
+	x_range = (int)1024 / (line_num+1);
+	line_r = (int)3 * x_range / 4;
+	cout << "x_range is " << x_range << endl;
+	cout << "line_r is " << line_r << endl;
+
 	d_flag = 0;
 	s_flag = 0;
 	q_flag = 0;
@@ -25,21 +31,46 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-	ofSetColor(127, 23, 31);  // Set the drawing color to brown
 
+	//cout << "draw method is called" << endl;
+	ofSetColor(127, 66, 70);
 	// Draw shapes for ceiling and floor
-	ofDrawRectangle(0, 0, 1024, 40); // Top left corner at (50, 50), 100 wide x 100 high
-	ofDrawRectangle(0, 728, 1024, 40); // Top left corner at (50, 50), 100 wide x 100 high
-
+	ofDrawRectangle(0, 0, 1024, 50); // Top left corner at (50, 50), 100 wide x 100 high
+	ofDrawRectangle(0, 768-25, 1024, 25); // Top left corner at (50, 50), 100 wide x 100 high
 
 	ofSetLineWidth(5);
 	if (d_flag) {
 		// draw water_point
+		ofSetColor(0, 0, 0);
+		ofDrawCircle(water_point.x, water_point.y, 12);
+		ofSetColor(255, 255, 255);
+		ofDrawCircle(water_point.x, water_point.y, 7);
 		// draw lines
+		ofSetColor(40, 150, 65);
+		for (int i = 0; i < line_num; i++) {
+			ofDrawCircle(lines[i].center.x, lines[i].center.y, 5);
+			ofDrawLine(lines[i].diameter.start.x, lines[i].diameter.start.y, lines[i].diameter.end.x, lines[i].diameter.end.y);
+		}
+		ofSetColor(198, 0, 0);
+		ofDrawCircle(lines[cur_line].center.x, lines[cur_line].center.y, 5);
+		ofDrawLine(lines[cur_line].diameter.start.x, lines[cur_line].diameter.start.y, lines[cur_line].diameter.end.x, lines[cur_line].diameter.end.y);
 		// draw water_pail
+		ofSetColor(6, 0, 22);
+		ofDrawLine(water_pail.left.start.x, water_pail.left.start.y, water_pail.left.end.x, water_pail.left.end.y);
+		ofDrawLine(water_pail.bottom.start.x, water_pail.bottom.start.y, water_pail.bottom.end.x, water_pail.bottom.end.y);
+		ofDrawLine(water_pail.right.start.x, water_pail.right.start.y, water_pail.right.end.x, water_pail.right.end.y);
 	}
 	if (s_flag) {
-		//
+		ofSetColor(0, 170, 204);
+		ofSetLineWidth(3);
+		//for (int i = 0; i < water.pre_path.size(); i++) {
+		//	ofDrawLine(water.pre_path[i].start.x, water.pre_path[i].start.y, water.pre_path[i].end.x, water.pre_path[i].end.y);
+		//}
+		ofSetColor(0, 0, 205);
+		ofDrawCircle(water.cur_loc.x, water.cur_loc.y, 7);
+		if (l_flag && water.cur_loc.y < 768-25-7) {
+			water.calculatePath(lines, line_num);
+		}
 	}
 }
 
@@ -64,12 +95,11 @@ void ofApp::keyPressed(int key){
 		_Exit(0);
 	}
 	if (key == 'd') {
-		if(l_flag) d_flag = 1;
-		else initializeObject();
+		d_flag = 1;
 	}
 	if (key == 's') {
-		if (l_flag && d_flag) {
-			//
+		if (d_flag) {
+			s_flag = 1;
 		}
 	}
 }
@@ -89,10 +119,19 @@ void ofApp::keyReleased(int key){
 		}
 	}
 	if (key == OF_KEY_UP) {
-		lines[cur_line].increaseGrad();
+		if (d_flag && s_flag) {
+			l_flag = 0;
+			lines[cur_line].increaseGrad();
+			l_flag = water.checkCurLoc(lines);
+		}
+			
 	}
 	if (key == OF_KEY_DOWN) {
-		lines[cur_line].decreaseGrad();
+		if (d_flag && s_flag) {
+			l_flag = 0;
+			lines[cur_line].decreaseGrad();
+			l_flag = water.checkCurLoc(lines);
+		}
 	}
 }
 
@@ -141,88 +180,98 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 
 }
 
-void ofApp::quickSort(int left, int right) {
-	/*
-		https://reakwon.tistory.com/61?category=308657
-	*/
-	int pivot = lines[left].center.y;
-	int less = left;
-	int more = right + 1;
-
-	while (left < right) {
-		do {
-			do
-				less++;
-			while (less <= right && lines[less].center.y < pivot);
-
-			do
-				more--;
-			while (left <= more && pivot < lines[more].center.y);
-
-		} while (less < more);
-
-		// swap left and more
-		RotatableLine tmp_line = lines[left];
-		lines[left] = lines[more];
-		lines[more] = tmp_line;
-
-		quickSort(left, more - 1);
-		quickSort(more + 1, right);
-	}
-}
-
 int ofApp::initializeObject() {
-	// create radom line
+	cout << "initializeObject method is called" << endl;
+
+	int highest, lowest;
+	int min_y = 768, max_y = 0;
+	int above = rand()%2;
+
 	RotatableLine tmp_line;
+	tmp_line.r = line_r;
+
+	// create radom line
 	for (int i = 0; i < line_num; i++) {
 		// set center
-		tmp_line.center.x = (float)rand() * 1024;
-		tmp_line.center.y = (float)rand()* 768;
+		tmp_line.center.x = (float)(rand() % (x_range-line_r)) + (line_r + i * x_range);
+		tmp_line.center.y = (float)(rand() % (768 - 2 * (50 + line_r) - line_r/2)) + (50 + line_r ) + (line_r/2);
+		
 		// set gradient
 		tmp_line.gradient = rand() % 180;
 		// get diameter
 		tmp_line.setDiameter();
-
+		if (min_y > tmp_line.diameter.start.y) {
+			min_y = tmp_line.diameter.start.y;
+			highest = i;
+		}
+		if (max_y < tmp_line.diameter.end.y) {
+			max_y = tmp_line.diameter.end.y;
+			lowest = i;
+		}
+		cout << tmp_line.center.x << ", " << tmp_line.center.y << endl;
+		cout << tmp_line.gradient << endl;
+		cout << '(' << tmp_line.diameter.start.x << ", " << tmp_line.diameter.start.y << "), (" << tmp_line.diameter.end.x << ", " << tmp_line.diameter.end.y << ')' << endl;
 		lines.push_back(tmp_line);
 	}
 
-	// sorting lines according to ceter.y : quick sort
-	quickSort(0, line_num - 1);
-
 	// set water_point and initialize cur_line index
-	cur_line = rand() % 3;
+	cur_line = highest;
 	tmp_line = lines[cur_line];		// target line
-	float delta_x = tmp_line.diameter.end.x - tmp_line.diameter.start.x;
-	water_point.x = tmp_line.diameter.start.x + (float)rand()*delta_x;
-	water_point.y = 20;
-
-	// set water_pail
-	tmp_line = lines[line_num - rand() % 3 - 1]; // traget line
-	int tmp_grad = rand() % 180;
-	float x1, x2;
-	if (tmp_grad <= 90) {
-		x1 = tmp_line.center.x + tmp_line.getR() * cos(180 + tmp_grad);
-		x2 = tmp_line.center.x + tmp_line.getR() * cos(tmp_grad);
+	if (tmp_line.diameter.start.x < tmp_line.diameter.end.x) {
+		float delta_x = tmp_line.diameter.end.x - tmp_line.diameter.start.x;
+		water_point.x = tmp_line.diameter.start.x + rand() % ((int)delta_x-5);
 	}
 	else {
-		x1 = tmp_line.center.x + tmp_line.getR() * cos(tmp_grad);
-		x2 = tmp_line.center.x + tmp_line.getR() * cos(180 + tmp_grad);
+		float delta_x = tmp_line.diameter.start.x - tmp_line.diameter.end.x;
+		water_point.x = tmp_line.diameter.end.x + rand() % (int)delta_x;
 	}
-	delta_x = x2 - x1;
-	float center_of_bottom;
-	center_of_bottom = x1 + (float)rand()*delta_x;
-	water_pail.bottom.start.x = center_of_bottom - 2;
-	water_pail.bottom.start.y = 768 - 20;
-	water_pail.bottom.end.x = center_of_bottom + 2;
-	water_pail.bottom.end.y = 768 - 20;
+	water_point.y = 25;
+
+	cout << "water point: " << water_point.x << ", " << water_point.y << endl;
+
+	// set water_pail
+	tmp_line = lines[lowest]; // traget line
+	water_pail.bottom.start.x = lines[lowest].center.x - line_r + rand() % (2*line_r);
+	water_pail.bottom.start.y = 768 - 25;
+	water_pail.bottom.end.x = water_pail.bottom.start.x + line_r;
+	water_pail.bottom.end.y = 768 - 25;
+	cout << '(' << water_pail.bottom.start.x << ", " << water_pail.bottom.start.y << "), (" << water_pail.bottom.end.x << ", " << water_pail.bottom.end.y << ')' << endl;
 	// set water_pail's left
 	water_pail.left.end = water_pail.bottom.start;
-	water_pail.left.start.x = water_pail.left.end.x - 1;
-	water_pail.left.start.y = water_pail.left.end.y - 1;
+	water_pail.left.start.x = water_pail.left.end.x - 25;
+	water_pail.left.start.y = water_pail.left.end.y - 25;
 	// set water_pail's right
 	water_pail.right.start = water_pail.bottom.end;
-	water_pail.right.end.x = water_pail.right.start.x + 1;
-	water_pail.right.end.y = water_pail.right.start.y - 1;
+	water_pail.right.end.x = water_pail.right.start.x + 25;
+	water_pail.right.end.y = water_pail.right.start.y - 25;
+
+	// check there is valid path
+	int start, end;
+	if (highest < lowest) {
+		start = highest;
+		end = lowest;
+	}
+	else {
+		start = lowest;
+		end = highest;
+	}
+	for (int i = start; i < end; i++) {
+		if (lines[i].center.y > lines[i + 1].center.y) {
+			float tmp_y = lines[i].center.y;
+			lines[i].center.y = lines[i + 1].center.y;
+			lines[i + 1].center.y = tmp_y;
+			lines[i].setDiameter();
+			lines[i + 1].setDiameter();
+		}
+	}
+
+	// initialize water
+	water.on_line = 0;
+	water.past_dest = -1;
+	water.dest = -1;
+	Line first_path = { {water_point.x, water_point.y}, {water_point.x, water_point.y + 1} };
+	water.cur_loc = { water_point.x, water_point.y + 1 };
+	water.pre_path.push_back(first_path);
 
 	return 1;
 }
