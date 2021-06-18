@@ -12,14 +12,16 @@ void ofApp::setup(){
 	ofSetLineWidth(4);
 
 	line_num = 6;
-	x_range = (int)1024 / (line_num+1);
-	line_r = (int)3 * x_range / 4;
-	cout << "x_range is " << x_range << endl;
+	obj_range = (int)WIDTH / (line_num+1);
+	line_r = (int)3 * obj_range / 4;
+	cout << "obj_range is " << obj_range << endl;
 	cout << "line_r is " << line_r << endl;
 
 	d_flag = 0;
 	s_flag = 0;
 	q_flag = 0;
+
+	lines = (RotatableLine*)malloc(sizeof(RotatableLine)*line_num);
 
 	l_flag = initializeObject();
 }
@@ -35,8 +37,8 @@ void ofApp::draw(){
 	//cout << "draw method is called" << endl;
 	ofSetColor(127, 66, 70);
 	// Draw shapes for ceiling and floor
-	ofDrawRectangle(0, 0, 1024, 50); // Top left corner at (50, 50), 100 wide x 100 high
-	ofDrawRectangle(0, 768-25, 1024, 25); // Top left corner at (50, 50), 100 wide x 100 high
+	ofDrawRectangle(0, 0, WIDTH, 50); // Top left corner at (50, 50), 100 wide x 100 high
+	ofDrawRectangle(0, HEIGHT-25, WIDTH, 25); // Top left corner at (50, 50), 100 wide x 100 high
 
 	ofSetLineWidth(5);
 	if (d_flag) {
@@ -68,8 +70,8 @@ void ofApp::draw(){
 		//}
 		ofSetColor(0, 0, 205);
 		ofDrawCircle(water.cur_loc.x, water.cur_loc.y, 7);
-		if (l_flag && water.cur_loc.y < 768-25-7) {
-			water.calculatePath(lines, line_num);
+		if (l_flag && water.cur_loc.y < HEIGHT-25-7) {
+			water.calculatePath(lines, line_num, HEIGHT);
 		}
 	}
 }
@@ -88,7 +90,7 @@ void ofApp::keyPressed(int key){
 		s_flag = 0;
 
 		// Free the dynamically allocated memory exits.
-		lines.clear();
+		free(lines);
 
 		cout << "Dynamically allocated memory has been freed." << endl;
 
@@ -184,34 +186,61 @@ int ofApp::initializeObject() {
 	cout << "initializeObject method is called" << endl;
 
 	int highest, lowest;
+	int start_p, end_p;
+	int path_limit, path_num;
+	int *y_list;
 	int min_y = 768, max_y = 0;
-	int above = rand()%2;
+	int forward = rand()%2;
 
 	RotatableLine tmp_line;
 	tmp_line.r = line_r;
-
 	// create radom line
+	path_limit = (int)((line_num+1)/2);
+	path_num = rand() % (path_limit-1) + 2;
+	cout << path_limit << " / " << path_num << endl;
+	y_list = (int*)malloc(sizeof(int)*line_num);
+	if (forward) {
+		start_p = highest = rand() % (line_num - (path_num - 1));
+		end_p = lowest = highest + path_num - 1;
+	}
+	else {
+		start_p = lowest = rand() % (line_num - (path_num - 1));
+		end_p = highest = lowest + path_num - 1;
+	}
+	y_list[highest] = rand() % (line_num - (path_num - 1) * 2);
+	y_list[lowest] = line_num - rand() % (line_num - (y_list[highest] + (path_num - 1) * 2)) - 1;
+	cout << "hightest_line's y : " << y_list[highest] << ", lowest_line's y : " << y_list[lowest] << endl;
+
+	// set y_list
+	for (int i = start_p - 1; i >= 0; i--) {
+		y_list[i] = pickSetId(y_list[i + 1]);
+	}
+	for (int i = start_p + 1; i < end_p; i++) {
+		if (forward) {
+			y_list[i] = rand() % (y_list[end_p] - 2 * (path_num - 2 - (i - start_p)) - (y_list[i - 1] + 2)) + (y_list[i - 1] + 2);
+		}
+		else {
+			y_list[i] = rand() % ((y_list[i - 1] - 2) - (y_list[end_p] + 2 * ((path_num - 2) + (i - start_p)))) - (y_list[end_p] + 2 * ((path_num - 2) - (i - start_p)));
+		}
+
+		cout << y_list[i]<< ", " << endl;
+	}
+	for (int i = end_p + 1; i < line_num; i++) {
+		y_list[i] = pickSetId(y_list[i - 1]);
+	}
+	// set complete rotatable line object
 	for (int i = 0; i < line_num; i++) {
-		// set center
-		tmp_line.center.x = (float)(rand() % (x_range-line_r)) + (line_r + i * x_range);
-		tmp_line.center.y = (float)(rand() % (768 - 2 * (50 + line_r) - line_r/2)) + (50 + line_r ) + (line_r/2);
-		
+		tmp_line.center.x = (float)(rand() % (obj_range - line_r)) + (line_r + i * obj_range);
+		tmp_line.center.y = (float)(rand() % (obj_range - line_r)) + (100 + obj_range * y_list[i] + line_r);
 		// set gradient
 		tmp_line.gradient = rand() % 180;
 		// get diameter
 		tmp_line.setDiameter();
-		if (min_y > tmp_line.diameter.start.y) {
-			min_y = tmp_line.diameter.start.y;
-			highest = i;
-		}
-		if (max_y < tmp_line.diameter.end.y) {
-			max_y = tmp_line.diameter.end.y;
-			lowest = i;
-		}
-		cout << tmp_line.center.x << ", " << tmp_line.center.y << endl;
-		cout << tmp_line.gradient << endl;
-		cout << '(' << tmp_line.diameter.start.x << ", " << tmp_line.diameter.start.y << "), (" << tmp_line.diameter.end.x << ", " << tmp_line.diameter.end.y << ')' << endl;
-		lines.push_back(tmp_line);
+
+		//cout << tmp_line.center.x << ", " << tmp_line.center.y << endl;
+		//cout << tmp_line.gradient << endl;
+		//cout << '(' << tmp_line.diameter.start.x << ", " << tmp_line.diameter.start.y << "), (" << tmp_line.diameter.end.x << ", " << tmp_line.diameter.end.y << ')' << endl;
+		lines[i] = tmp_line;
 	}
 
 	// set water_point and initialize cur_line index
@@ -232,9 +261,9 @@ int ofApp::initializeObject() {
 	// set water_pail
 	tmp_line = lines[lowest]; // traget line
 	water_pail.bottom.start.x = lines[lowest].center.x - line_r + rand() % (2*line_r);
-	water_pail.bottom.start.y = 768 - 25;
+	water_pail.bottom.start.y = HEIGHT - 25;
 	water_pail.bottom.end.x = water_pail.bottom.start.x + line_r;
-	water_pail.bottom.end.y = 768 - 25;
+	water_pail.bottom.end.y = HEIGHT - 25;
 	cout << '(' << water_pail.bottom.start.x << ", " << water_pail.bottom.start.y << "), (" << water_pail.bottom.end.x << ", " << water_pail.bottom.end.y << ')' << endl;
 	// set water_pail's left
 	water_pail.left.end = water_pail.bottom.start;
@@ -274,4 +303,24 @@ int ofApp::initializeObject() {
 	water.pre_path.push_back(first_path);
 
 	return 1;
+}
+
+int ofApp::pickSetId(int datum) {
+	int set_id = rand() % (line_num - 2) + 2;
+	if (datum != 0) {
+		if (datum == line_num - 1) set_id = datum - set_id;
+		else {
+			int do_sub = rand() % 1;
+			if (do_sub) {
+				set_id = datum - set_id;
+				if (set_id < 0) set_id = 0;
+			}
+			else {
+				set_id = datum + set_id;
+				if (set_id > line_num - 1) set_id = line_num - 1;
+			}
+		}
+	}
+
+	return set_id;
 }

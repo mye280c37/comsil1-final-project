@@ -48,6 +48,6 @@ class Water {
 		int dest;
 		Dot dest_loc;
 
-		void calculatePath(vector<RotatableLine> lines, int line_num);
-		int checkCurLoc(vector<RotatableLine> lines);
+		void calculatePath(RotatableLine* lines, int line_num, int height);
+		int checkCurLoc(RotatableLine* lines);
 };

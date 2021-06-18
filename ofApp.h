@@ -23,18 +23,21 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 		
+		int WIDTH = 750;
+		int HEIGHT = 900;
+		int obj_range;
 		int l_flag;
 		int d_flag;
 		int s_flag;
 		int q_flag;
-		int x_range;
 		int line_r; 
 		int line_num;
-		vector<RotatableLine> lines;
+		RotatableLine *lines;
 		Dot water_point;
 		int cur_line;
 		Water water;
 		WaterPail water_pail;
 
 		int initializeObject();
+		int pickSetId(int datum);
 };
