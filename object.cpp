@@ -39,7 +39,6 @@ void RotatableLine::setW(int new_w) {
 
 // Water
 void Water::calculatePath(RotatableLine *lines, int line_num, int height) {
-	int path_length = pre_path.size();
 	Line new_line;
 	Dot next_loc;
 	RotatableLine dest_line;
@@ -100,9 +99,7 @@ void Water::calculatePath(RotatableLine *lines, int line_num, int height) {
 
 	new_line.start = cur_loc;
 	new_line.end = next_loc;
-	pre_path.push_back(new_line);
 	cur_loc = next_loc;
-	cout << '(' << on_line << ')'  << cur_loc.x << ", " << cur_loc.y << endl;
 }
 
 int Water::checkCurLoc(RotatableLine *lines) {

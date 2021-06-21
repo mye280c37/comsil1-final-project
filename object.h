@@ -31,6 +31,7 @@ class RotatableLine {
 		int gradient;
 		Dot center;
 		int r;
+
 		int increaseGrad();
 		int decreaseGrad();
 		void setDiameter();
@@ -41,7 +42,6 @@ class RotatableLine {
 class Water {
 
 	public:
-		vector<Line> pre_path;
 		Dot cur_loc;
 		int on_line;
 		int past_dest;

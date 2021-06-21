@@ -25,11 +25,11 @@ class ofApp : public ofBaseApp{
 		
 		int WIDTH = 750;
 		int HEIGHT = 900;
-		int obj_range;
+		int obj_unit;
 		int l_flag;
 		int d_flag;
 		int s_flag;
-		int q_flag;
+		int end_flag;
 		int line_r; 
 		int line_num;
 		RotatableLine *lines;
@@ -37,6 +37,8 @@ class ofApp : public ofBaseApp{
 		int cur_line;
 		Water water;
 		WaterPail water_pail;
+		ofTrueTypeFont	verdana14;
+		string result_msg;
 
 		int initializeObject();
 		int pickSetId(int datum);
