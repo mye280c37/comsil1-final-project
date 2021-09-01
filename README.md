@@ -7,7 +7,7 @@
 게임 화면의 크기는 게임에 필요한 객체 생성을 위해 일부러 맞춘 것이니 변경하지 말아주시길 바랍니다.
 
 
-### project docs
+### [project docs]
 [project docs 바로가기](https://mye785c83.notion.site/WaterFall-to-target-e1b644525e934457996d5c0b0a31c1ec)
 
 
